@@ -1,6 +1,7 @@
 package com.yx.test.rsa;
 
 import javax.crypto.Cipher;
+import java.io.ByteArrayOutputStream;
 import java.security.*;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
@@ -9,6 +10,16 @@ public class RSAUtil {
 
     public static final String ENCRYPTION_ALGORITHM = "RSA";
     public static final String SIGNATURE_ALGORITHM = "MD5withRSA";
+
+    /**
+     * RSA最大加密明文大小《规定》
+     */
+    private static final int MAX_ENCRYPT_BLOCK = 117;
+
+    /**
+     * RSA最大解密密文大小《规定》
+     */
+    private static final int MAX_DECRYPT_BLOCK = 128;
 
     /**
      * 生成密钥
@@ -41,10 +52,28 @@ public class RSAUtil {
         MyPair<Key, KeyFactory> pair = generateKeyAndFactory(keyString, isPublic);
         KeyFactory keyFactory = pair.getR();
         Key key = pair.getL();
-        // 对数据加密
         Cipher cipher = Cipher.getInstance(keyFactory.getAlgorithm());
         cipher.init(Cipher.ENCRYPT_MODE, key);
-        return Base64Util.encryptBASE64(cipher.doFinal(data.getBytes()));
+        byte[] dataBytes = data.getBytes();
+        int dataLen = dataBytes.length;
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        int offSet = 0;
+        byte[] cache;
+        int i = 0;
+
+        while (dataLen - offSet > 0) {//对数据分段加密
+            if (dataLen - offSet > MAX_ENCRYPT_BLOCK) {
+                cache = cipher.doFinal(dataBytes, offSet, MAX_ENCRYPT_BLOCK);
+            } else {
+                cache = cipher.doFinal(dataBytes, offSet, dataLen - offSet);
+            }
+            out.write(cache, 0, cache.length);
+            i++;
+            offSet = i * MAX_ENCRYPT_BLOCK;
+        }
+        byte[] encryptedData = out.toByteArray();
+        out.close();
+        return Base64Util.encryptBASE64(encryptedData);
     }
 
     /**
@@ -55,10 +84,29 @@ public class RSAUtil {
         MyPair<Key, KeyFactory> pair = generateKeyAndFactory(keyString, isPublic);
         KeyFactory keyFactory = pair.getR();
         Key key = pair.getL();
-        // 对数据加密
         Cipher cipher = Cipher.getInstance(keyFactory.getAlgorithm());
         cipher.init(Cipher.DECRYPT_MODE, key);
-        return new String(cipher.doFinal(Base64Util.decryptBASE64(data)));
+
+        byte[] dataBytes = Base64Util.decryptBASE64(data);
+
+        int inputLen = dataBytes.length;
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        int offSet = 0;
+        byte[] cache;
+        int i = 0;
+        while (inputLen - offSet > 0) {//对数据分段解密
+            if (inputLen - offSet > MAX_DECRYPT_BLOCK) {
+                cache = cipher.doFinal(dataBytes, offSet, MAX_DECRYPT_BLOCK);
+            } else {
+                cache = cipher.doFinal(dataBytes, offSet, inputLen - offSet);
+            }
+            out.write(cache, 0, cache.length);
+            i++;
+            offSet = i * MAX_DECRYPT_BLOCK;
+        }
+        byte[] decryptedData = out.toByteArray();
+        out.close();
+        return new String(decryptedData);
     }
 
     /**
@@ -104,5 +152,18 @@ public class RSAUtil {
         signature.initVerify(publicKey);
         signature.update(data);
         return signature.verify(Base64Util.decryptBASE64(sign));
+    }
+
+    public static void main(String[] args) throws Exception {
+        MyPair<PublicKey, PrivateKey> pair = RSAUtil.genKeyPair();//公钥私钥
+        String publicKey = RSAUtil.getPublicKey(pair);
+        String privateKey = RSAUtil.getPrivateKey(pair);
+        String str = "hello world";
+
+        String encryptStr = encrypt(str, publicKey, true);
+        System.out.println(encryptStr);
+
+        String decryptStr = decrypt(encryptStr, privateKey, false);
+        System.out.println(decryptStr);
     }
 }
