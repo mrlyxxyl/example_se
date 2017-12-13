@@ -14,7 +14,6 @@ public class CallableNewTest {
 
         List<FutureTask<Integer>> futureTasks = new ArrayList<FutureTask<Integer>>();//进行异步任务列表
         ExecutorService executorService = Executors.newFixedThreadPool(3);//线程池 初始化十个线程 和JDBC连接池是一个意思 实现重用
-        long start = System.currentTimeMillis();
 
         Callable<Integer> callable = new Callable<Integer>() {//类似与run方法的实现 Callable是一个接口，在call中手写逻辑代码
             @Override
@@ -37,9 +36,7 @@ public class CallableNewTest {
             count += futureTask.get();
         }
 
-        long end = System.currentTimeMillis();
         System.out.println("线程池的任务全部完成:结果为:" + count + "，main线程关闭，进行线程的清理");
-        System.out.println("使用时间：" + (end - start) + "ms");
         executorService.shutdown();//清理线程池
     }
 }
