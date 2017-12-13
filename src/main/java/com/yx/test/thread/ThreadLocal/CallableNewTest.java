@@ -27,25 +27,19 @@ public class CallableNewTest {
         };
 
         for (int i = 0; i < 10; i++) {
-            //创建一个异步任务
-            FutureTask<Integer> futureTask = new FutureTask<Integer>(callable);
-//            futureTasks.add(futureTask);
-            //提交异步任务到线程池，让线程池管理任务 特爽把。
-            //由于是异步并行任务，所以这里并不会阻塞
+            FutureTask<Integer> futureTask = new FutureTask<Integer>(callable);//创建一个异步任务
+            futureTasks.add(futureTask);
             executorService.submit(futureTask);
         }
 
-       /* int count = 0;
+        int count = 0;
         for (FutureTask<Integer> futureTask : futureTasks) {
-            //futureTask.get() 得到我们想要的结果
-            //该方法有一个重载get(long timeout, TimeUnit unit) 第一个参数为最大等待时间，第二个为时间的单位
             count += futureTask.get();
         }
+
         long end = System.currentTimeMillis();
         System.out.println("线程池的任务全部完成:结果为:" + count + "，main线程关闭，进行线程的清理");
-        System.out.println("使用时间：" + (end - start) + "ms");*/
-        //清理线程池
-//        executorService.shutdown();
-
+        System.out.println("使用时间：" + (end - start) + "ms");
+        executorService.shutdown();//清理线程池
     }
 }
