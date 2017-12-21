@@ -24,7 +24,6 @@ public class FTPUtil {
         }
     }
 
-
     public static void disConnect() {
         try {
             ftp.logout();
