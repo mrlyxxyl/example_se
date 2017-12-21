@@ -49,7 +49,7 @@ public class FTPUtil {
 
         try {
             InputStream is;
-            String path = "100";
+            String path = "/100";
             boolean flag = ftp.changeWorkingDirectory(path);
             if (!flag) {
                 ftp.makeDirectory(path);
