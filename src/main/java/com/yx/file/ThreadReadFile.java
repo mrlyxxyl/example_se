@@ -1,9 +1,6 @@
 package com.yx.file;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 
@@ -32,13 +29,11 @@ public class ThreadReadFile extends Thread {
                 }
             }
             byte[] buf = new byte[1024];
-            StringBuffer sb = new StringBuffer();
-            while ((fis.read(buf)) != -1) {
-                sb.append(new String(buf, "utf-8"));
-                buf = new byte[1024];
-                Thread.sleep(10);
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            while ((fis.read(buf)) > 0) {
+                bos.write(buf);
             }
-            System.out.println(sb.toString());
+            System.out.println(new String(bos.toByteArray()));
             flin.release();
             fileChannel.close();
             fis.close();
