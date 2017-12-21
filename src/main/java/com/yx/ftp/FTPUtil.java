@@ -2,11 +2,10 @@ package com.yx.ftp;
 
 import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
+import org.apache.commons.net.ftp.FTPFile;
+import org.apache.commons.net.ftp.FTPReply;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 
 /**
  * User: LiWenC
@@ -37,10 +36,9 @@ public class FTPUtil {
 
     public static void main(String[] args) throws InterruptedException, IOException {
         connect();
-        for (int i = 0; i < 10; i++) {
-            upload(System.currentTimeMillis());
-        }
-
+        long fileName = System.currentTimeMillis();
+        upload(fileName);
+        downloadFile("100", fileName + ".pdf", "e:/");
         disConnect();
     }
 
@@ -51,7 +49,7 @@ public class FTPUtil {
 
         try {
             InputStream is;
-            String path = "/100";
+            String path = "100";
             boolean flag = ftp.changeWorkingDirectory(path);
             if (!flag) {
                 ftp.makeDirectory(path);
@@ -65,5 +63,35 @@ public class FTPUtil {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Description: 从FTP服务器下载文件
+     *
+     * @param remotePath FTP服务器上的相对路径
+     * @param fileName   要下载的文件名
+     * @param localPath  下载后保存到本地的路径
+     * @return
+     */
+    public static boolean downloadFile(String remotePath, String fileName, String localPath) {
+        try {
+            int reply = ftp.getReplyCode();
+            if (FTPReply.isPositiveCompletion(reply)) {
+                ftp.changeWorkingDirectory(remotePath);// 转移到FTP服务器目录
+                FTPFile[] fs = ftp.listFiles();
+                for (FTPFile ff : fs) {
+                    if (ff.getName().equals(fileName)) {
+                        File localFile = new File(localPath + "/" + ff.getName());
+                        OutputStream os = new FileOutputStream(localFile);
+                        ftp.retrieveFile(ff.getName(), os);
+                        os.close();
+                    }
+                }
+                return true;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 }
