@@ -12,6 +12,8 @@ import java.security.spec.X509EncodedKeySpec;
  */
 public class RSAJavaToCSharp {
 
+    public static final String ENCRYPTION_ALGORITHM = "RSA";
+
     /**
      * 私钥转换成C#格式
      *
@@ -23,7 +25,7 @@ public class RSAJavaToCSharp {
             StringBuffer buff = new StringBuffer(1024);
             byte[] encodedPrivateKey = Base64Util.decryptBASE64(privateKey);
             PKCS8EncodedKeySpec pvkKeySpec = new PKCS8EncodedKeySpec(encodedPrivateKey);
-            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+            KeyFactory keyFactory = KeyFactory.getInstance(ENCRYPTION_ALGORITHM);
             RSAPrivateCrtKey pvkKey = (RSAPrivateCrtKey) keyFactory.generatePrivate(pvkKeySpec);
             buff.append("<RSAKeyValue>");
             buff.append("<Modulus>" + encodeBase64(removeMSZero(pvkKey.getModulus().toByteArray())) + "</Modulus>");
@@ -52,7 +54,7 @@ public class RSAJavaToCSharp {
         try {
             StringBuffer buff = new StringBuffer(1024);
             byte[] encodedPublicKey = Base64Util.decryptBASE64(publicKey);
-            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+            KeyFactory keyFactory = KeyFactory.getInstance(ENCRYPTION_ALGORITHM);
             RSAPublicKey pukKey = (RSAPublicKey) keyFactory.generatePublic(new X509EncodedKeySpec(encodedPublicKey));
             buff.append("<RSAKeyValue>");
             buff.append("<Modulus>" + encodeBase64(removeMSZero(pukKey.getModulus().toByteArray())) + "</Modulus>");
