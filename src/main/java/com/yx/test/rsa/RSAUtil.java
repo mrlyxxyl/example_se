@@ -35,14 +35,14 @@ public class RSAUtil {
      * 取得公钥
      */
     public static String getPublicKey(MyPair<PublicKey, PrivateKey> pair) throws Exception {
-        return Base64Util.encryptBASE64(pair.getL().getEncoded());
+        return Base64Util.encryptBASE64(pair.getL().getEncoded()).replaceAll("\\s", "");
     }
 
     /**
      * 取得私钥
      */
     public static String getPrivateKey(MyPair<PublicKey, PrivateKey> pair) throws Exception {
-        return Base64Util.encryptBASE64(pair.getR().getEncoded());
+        return Base64Util.encryptBASE64(pair.getR().getEncoded()).replaceAll("\\s", "");
     }
 
     /**
@@ -73,7 +73,7 @@ public class RSAUtil {
         }
         byte[] encryptedData = out.toByteArray();
         out.close();
-        return Base64Util.encryptBASE64(encryptedData);
+        return Base64Util.encryptBASE64(encryptedData).replaceAll("\\s", "");
     }
 
     /**
@@ -157,7 +157,9 @@ public class RSAUtil {
     public static void main(String[] args) throws Exception {
         MyPair<PublicKey, PrivateKey> pair = RSAUtil.genKeyPair();//公钥私钥
         String publicKey = RSAUtil.getPublicKey(pair);
+        System.out.println(publicKey);
         String privateKey = RSAUtil.getPrivateKey(pair);
+        System.out.println(privateKey);
         String str = "hello world";
 
         String encryptStr = encrypt(str, publicKey, true);
