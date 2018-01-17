@@ -4,39 +4,63 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpHead;
-import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.*;
 import org.apache.http.entity.FileEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
 
 /**
  * User: LiWenC
  * Date: 18-1-11
  */
 public class SwiftUtil {
+    private static final int THREAD_NUM = 30;//线程数量
+
+    private static final int SEMAPHORE_NUM = 30;//信号量数量
 
     public static void main(String[] args) {
+//        Map<String, Header> map = genUrlAndToken("http://112.112.12.76:11080/auth/v1.0", "test:tester", "testing");
         Map<String, Header> map = genUrlAndToken("http://192.168.1.181:8080/auth/v1.0", "test:tester", "testing");
         Header storageUrl = map.get("storageUrl");
         Header authToken = map.get("authToken");
         System.out.println(storageUrl.getValue());
         System.out.println(authToken.getValue());
 
-        createContainer(storageUrl, authToken, "live");
+//        createContainer(storageUrl, authToken, "files");
 
-        uploadFile(storageUrl, authToken, "live", "e:", "ccc.png");
+        long start = System.currentTimeMillis();
 
-        downloadFile(storageUrl, authToken, "live", "e:", "ccc.png");
+//        uploadFile(storageUrl, authToken, "files", "e:", "ccc.png");
+
+//        downloadFile(storageUrl, authToken, "live", "e:", "ccc.png");
+
+//        deleteFile(storageUrl, authToken, "live", "bbb.png");
+
+        System.out.println("use time:" + (System.currentTimeMillis() - start));
+    }
+
+
+    private void threadExec(Header storageUrl, Header authToken) {
+
+        ExecutorService list = Executors.newFixedThreadPool(THREAD_NUM);
+        Semaphore semaphore = new Semaphore(SEMAPHORE_NUM);
+        for (int i = 1; i <= 30; i++) {
+            list.submit(new SyncDataThread(semaphore, storageUrl, authToken, i));
+        }
+        list.shutdown();
+        semaphore.acquireUninterruptibly(SEMAPHORE_NUM);
+        semaphore.release(SEMAPHORE_NUM);
     }
 
     /**
@@ -117,8 +141,6 @@ public class SwiftUtil {
             fileEntity.setContentType("text/plain; charset=\"UTF-8\"");
             HttpPut httpPost = new HttpPut(storageUrl.getValue() + "/" + containerName + "/" + fileName);
             httpPost.setHeader(authToken);
-            httpPost.setHeader("Content-Type", "image/jpeg");
-            httpPost.setHeader("X-Object-Meta-flower", "一张美图");
             httpPost.setEntity(fileEntity);
             CloseableHttpResponse rsp = httpClient.execute(httpPost);
             Header[] headers = rsp.getAllHeaders();
@@ -150,7 +172,7 @@ public class SwiftUtil {
                 if (entity != null) {
                     System.out.println(entity.getContentType());
                     System.out.println(entity.isStreaming());
-                    File storeFile = new File(storePath + "/" + System.currentTimeMillis() + ".png");
+                    File storeFile = new File(storePath + "/" + System.currentTimeMillis() + ".zip");
                     FileOutputStream output = new FileOutputStream(storeFile);
                     InputStream input = entity.getContent();
                     byte b[] = new byte[1024];
@@ -167,6 +189,67 @@ public class SwiftUtil {
             }
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    /**
+     * 删除文件
+     *
+     * @param storageUrl
+     * @param authToken
+     * @param containerName
+     * @param fileName
+     */
+    public static void deleteFile(Header storageUrl, Header authToken, String containerName, String fileName) {
+        try {
+            CloseableHttpClient httpClient = HttpClients.createDefault();
+            HttpDelete httpDelete = new HttpDelete(storageUrl.getValue() + "/" + containerName + "/" + fileName);
+            httpDelete.addHeader(authToken);
+            HttpResponse response = httpClient.execute(httpDelete);
+            if (HttpStatus.SC_OK == response.getStatusLine().getStatusCode()) {
+                HttpEntity entity = response.getEntity();
+                if (entity != null) {
+                    InputStream input = entity.getContent();
+                    ByteArrayOutputStream aos = new ByteArrayOutputStream();
+                    byte b[] = new byte[1024];
+                    int j;
+                    while ((j = input.read(b)) != -1) {
+                        aos.write(b, 0, j);
+                    }
+                    String result = new String(aos.toByteArray());
+                    System.out.println(result);
+                }
+                if (entity != null) {
+                    entity.consumeContent();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    class SyncDataThread extends Thread {
+        private Semaphore semaphore;
+        private Header storageUrl;
+        private Header authToken;
+        private int i;
+
+        public SyncDataThread(Semaphore semaphore, Header storageUrl, Header authToken, int i) {
+            this.semaphore = semaphore;
+            this.storageUrl = storageUrl;
+            this.authToken = authToken;
+            this.i = i;
+        }
+
+        public void run() {
+            try {
+                semaphore.acquire();
+//                uploadFile(storageUrl, authToken, "zip", "e:", i + ".zip");
+                downloadFile(storageUrl, authToken, "zip", "e:/tt/", "1516007867974.zip");
+                semaphore.release();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 }
