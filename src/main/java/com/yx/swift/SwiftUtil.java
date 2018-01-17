@@ -37,11 +37,11 @@ public class SwiftUtil {
         System.out.println(storageUrl.getValue());
         System.out.println(authToken.getValue());
 
-//        createContainer(storageUrl, authToken, "files");
-
         long start = System.currentTimeMillis();
 
-//        uploadFile(storageUrl, authToken, "files", "e:", "ccc.png");
+        createContainer(storageUrl, authToken, "files");
+
+        uploadFile(storageUrl, authToken, "files", "e:", "ccc.png");
 
 //        downloadFile(storageUrl, authToken, "live", "e:", "ccc.png");
 
