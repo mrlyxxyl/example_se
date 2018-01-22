@@ -41,7 +41,7 @@ public class SwiftUtil {
 
         createContainer(storageUrl, authToken, "files");
 
-        uploadFile(storageUrl, authToken, "files", "e:", "ccc.png");
+//        uploadFile(storageUrl, authToken, "files", "e:", "ccc.png");
 
 //        downloadFile(storageUrl, authToken, "live", "e:", "ccc.png");
 
