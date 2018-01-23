@@ -6,14 +6,12 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.*;
 import org.apache.http.entity.FileEntity;
+import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
+import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -29,7 +27,7 @@ public class SwiftUtil {
 
     private static final int SEMAPHORE_NUM = 30;//信号量数量
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
 //        Map<String, Header> map = genUrlAndToken("http://112.112.12.76:11080/auth/v1.0", "test:tester", "testing");
         Map<String, Header> map = genUrlAndToken("http://192.168.1.181:8080/auth/v1.0", "test:tester", "testing");
         Header storageUrl = map.get("storageUrl");
@@ -39,12 +37,13 @@ public class SwiftUtil {
 
         long start = System.currentTimeMillis();
 
-        createContainer(storageUrl, authToken, "files");
-
+//        createContainer(storageUrl, authToken, "files");
 //        uploadFile(storageUrl, authToken, "files", "e:", "ccc.png");
 
-//        downloadFile(storageUrl, authToken, "live", "e:", "ccc.png");
+        FileInputStream fis = new FileInputStream("e:/xxx.xlsx");
+//        upload(storageUrl, authToken, fis, "files", "xxx.xlsx");
 
+        downloadFile(storageUrl, authToken, "files", "e:", "xxx.xlsx");
 //        deleteFile(storageUrl, authToken, "live", "bbb.png");
 
         System.out.println("use time:" + (System.currentTimeMillis() - start));
@@ -153,6 +152,38 @@ public class SwiftUtil {
     }
 
     /**
+     * 文件流上传
+     *
+     * @param stream 文件流
+     * @throws java.io.IOException
+     */
+    public static void upload(Header storageUrl, Header authToken, InputStream stream, String containerName, String fileName) throws IOException {
+        HttpPut httpPut = new HttpPut(storageUrl.getValue() + "/" + containerName + "/" + fileName);
+        InputStreamEntity inputStreamEntity = new InputStreamEntity(stream);
+        httpPut.setEntity(inputStreamEntity);
+        httpPut.setHeader(authToken);
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+        CloseableHttpResponse response = httpClient.execute(httpPut);
+        try {
+            int code = response.getStatusLine().getStatusCode();
+//            if (code == 200) {
+            HttpEntity entity = response.getEntity();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(entity.getContent()));
+            String line;
+            StringBuffer result = new StringBuffer();
+            while ((line = reader.readLine()) != null) {
+                result.append(line);
+            }
+            EntityUtils.consume(entity);
+            String dd = result.toString().replaceAll("'", "\"");
+            System.out.println(dd);
+//            }
+        } finally {
+            response.close();
+        }
+    }
+
+    /**
      * 下载文件
      *
      * @param storageUrl
@@ -172,7 +203,7 @@ public class SwiftUtil {
                 if (entity != null) {
                     System.out.println(entity.getContentType());
                     System.out.println(entity.isStreaming());
-                    File storeFile = new File(storePath + "/" + System.currentTimeMillis() + ".zip");
+                    File storeFile = new File(storePath + "/" + System.currentTimeMillis() + ".xlsx");
                     FileOutputStream output = new FileOutputStream(storeFile);
                     InputStream input = entity.getContent();
                     byte b[] = new byte[1024];
