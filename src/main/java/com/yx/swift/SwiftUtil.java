@@ -43,7 +43,7 @@ public class SwiftUtil {
         FileInputStream fis = new FileInputStream("e:/xxx.xlsx");
 //        upload(storageUrl, authToken, fis, "files", "xxx.xlsx");
 
-        downloadFile(storageUrl, authToken, "files", "e:", "xxx.xlsx");
+        downloadFile(storageUrl, authToken, "files", "e:", "1516681784028.png");
 //        deleteFile(storageUrl, authToken, "live", "bbb.png");
 
         System.out.println("use time:" + (System.currentTimeMillis() - start));
@@ -203,7 +203,7 @@ public class SwiftUtil {
                 if (entity != null) {
                     System.out.println(entity.getContentType());
                     System.out.println(entity.isStreaming());
-                    File storeFile = new File(storePath + "/" + System.currentTimeMillis() + ".xlsx");
+                    File storeFile = new File(storePath + "/" + System.currentTimeMillis() + ".png");
                     FileOutputStream output = new FileOutputStream(storeFile);
                     InputStream input = entity.getContent();
                     byte b[] = new byte[1024];
