@@ -9,7 +9,10 @@ import com.itextpdf.text.pdf.security.MakeSignature;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.util.*;
+import java.util.Calendar;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * pdf 插入图片
@@ -17,57 +20,26 @@ import java.util.*;
  * Date: 18-5-21
  */
 public class PdfImage {
-    public static void main(String[] args) throws Exception {
-        long start = System.currentTimeMillis();
-        System.out.println(sign());
-        System.out.println(System.currentTimeMillis() - start);
-    }
 
-    /**
-     * 签章
-     *
-     * @return
-     */
-    public static List<String> sign() throws Exception {
-        List<String> list = new ArrayList<String>();
+    public static void main(String[] args) throws Exception {
         int estimatedSize = 50000;
         float lx = 10;
         float by = 10;
         float rx = 110;
         float ty = 110;
-        String page = "1;3;5;6-9";
+        int page = 1;
         String imagePath = "e:/test.png";
         String srcPath = "e:";
         String srcFileName = "test.pdf";
         String desPath = "e:";
         String desFileName = "des.pdf";
-        PdfReader reader = new PdfReader(srcPath + "/" + srcFileName);
-        int totalPages = reader.getNumberOfPages();
-        Set<Integer> pages = parsePages(page, totalPages);
-        boolean flag;
-        String fieldName;
-        String tmpFileName;
-        for (Integer p : pages) {
-            fieldName = "Signature-" + UUID.randomUUID().toString().replaceAll("-", "");
-            tmpFileName = System.currentTimeMillis() + ".pdf";
-            flag = addImage(srcPath, desPath, srcFileName, tmpFileName, imagePath, p, lx, by, rx, ty, fieldName, estimatedSize);
-            if (flag) {
-                File file = new File(desPath + "/" + desFileName);
-                if (file.exists()) {
-                    file.delete();
-                }
-
-                new File(desPath + "/" + tmpFileName).renameTo(new File(desPath + "/" + desFileName));
-                srcPath = desPath;
-                srcFileName = desFileName;
-                list.add(fieldName);
-            }
-        }
-        return list;
+        String fieldName = "Signature-" + UUID.randomUUID().toString().replaceAll("-", "");
+        boolean flag = addImage(srcPath, desPath, srcFileName, desFileName, imagePath, page, lx, by, rx, ty, fieldName, estimatedSize);
+        System.out.println(flag + "--" + fieldName);
     }
 
     /**
-     * 签章
+     * 添加图片
      *
      * @param srcPath
      * @param desPath
