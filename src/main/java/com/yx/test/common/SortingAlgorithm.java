@@ -1,5 +1,6 @@
 package com.yx.test.common;
 
+import java.util.Arrays;
 import java.util.Random;
 
 /**
@@ -158,21 +159,38 @@ public class SortingAlgorithm {
     }
 
     public static void main(String[] args) {
-        System.out.println("排序开始......");
-        long start = System.currentTimeMillis();
 
         SortingAlgorithm sortingAlgorithm = new SortingAlgorithm();
-        int[] array = sortingAlgorithm.getArray(10000);
-        // sortingAlgorithm.XiErSort(array);// 希尔排序188毫秒
-        // sortingAlgorithm.QuickSort(array, 0, array.length - 1);// 快速排序21毫秒
-        // sortingAlgorithm.ChooseSort(array);// 选择排序66毫秒
-        // sortingAlgorithm.DirectInsertSort(array);// 直接插入排序76毫秒
-        sortingAlgorithm.MaoPaoSort(array);// 冒泡排序176毫秒
+        int[] array = sortingAlgorithm.getArray(1000000);
 
-        System.out.println(array[0]);
-        System.out.println(array[10000 - 1]);
+        int[] a = Arrays.copyOf(array, array.length);
+        long start = System.currentTimeMillis();
+        sortingAlgorithm.XiErSort(a);
         long end = System.currentTimeMillis();
-        System.out.println("排序消耗时间 = " + (end - start) + "毫秒");
-    }
+        System.out.println("希尔排序消耗时间 = " + (end - start) + "毫秒");
 
+        int[] b = Arrays.copyOf(array, array.length);
+        start = System.currentTimeMillis();
+        sortingAlgorithm.QuickSort(b, 0, b.length - 1);
+        end = System.currentTimeMillis();
+        System.out.println("快速排序消耗时间 = " + (end - start) + "毫秒");
+
+        int[] c = Arrays.copyOf(array, array.length);
+        start = System.currentTimeMillis();
+        sortingAlgorithm.ChooseSort(c);
+        end = System.currentTimeMillis();
+        System.out.println("选择排序消耗时间 = " + (end - start) + "毫秒");
+
+        int[] d = Arrays.copyOf(array, array.length);
+        start = System.currentTimeMillis();
+        sortingAlgorithm.DirectInsertSort(d);
+        end = System.currentTimeMillis();
+        System.out.println("插入排序消耗时间 = " + (end - start) + "毫秒");
+
+        int[] e = Arrays.copyOf(array, array.length);
+        start = System.currentTimeMillis();
+        sortingAlgorithm.MaoPaoSort(e);
+        end = System.currentTimeMillis();
+        System.out.println("冒泡排序消耗时间 = " + (end - start) + "毫秒");
+    }
 }
